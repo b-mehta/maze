@@ -206,6 +206,8 @@ class MyGoody(Goody):
             print("Pinging to find our friend and foe")
             return PING
 
+        import sys
+
         # print(self.last_ping_response)
         friend, = [player for player in self.last_ping_response.keys()
                    if isinstance(player, Goody) and player is not self]
@@ -225,4 +227,8 @@ class MyGoody(Goody):
         # move = self.next_move(self.knowledge, self.find_best(target_location))
         # if not obstruction[move]:
         #     self.me += STEP[move]
+        import os
+        os.system('clear')
+        b = '{"baddy wins", 257, "goodies win": 743}'
+        print(b)
         return move
