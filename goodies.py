@@ -62,7 +62,6 @@ class GreedyGoody(Goody):
                 len_and_dirs.append(entry)
 
         len_and_dirs.sort(key=lambda len_and_dir: len_and_dir[2])
-        print(len_and_dirs)
 
         return len_and_dirs[0][0]
 
@@ -93,6 +92,103 @@ class MyGoody(Goody):
         len_and_dirs.sort(key=lambda len_and_dir: len_and_dir[2])
         return len_and_dirs
 
+    def find_best(self, target):
+        """
+        Given the map it outputs the path to the adjacent uknown which is closest to the target square
+
+        First find the adjacent unkowns
+        """
+        adjacent_unkowns = []
+        for i in self.knowledge.keys():
+            if self.knowledge[i] == True:
+                for j in [-1, +1]:
+                    for k in [-1, +1]:
+                        if i + Position(j, k) not in self.knowledge.keys():
+                            adjacent_unkowns.append(i + (j, k))
+
+        best_unkown = adjacent_unkowns[0]
+
+        best_dist = self.vector_len_2(best_unkown - target)
+
+        for i in adjacent_unkowns[1:]:
+            if self.vector_len_2(i - target) < self.vector_len_2(best_unkown - target):
+                best_unkown = i
+                best_dist = self.vector_len_2(i - target)
+
+        return best_unkown
+
+
+    def remove(self, A, x, n):
+        A2 = [[True for _ in range(n)] for _ in range(n)]
+        for i in range(n-1):
+            for j in range(n-1):
+                if i == x or j == x:
+                    A2[i][j] = False
+                else:
+                    A2[i][j] = A[i][j]
+        return A2
+
+
+    def path_alg(self, A, x, y, n):
+        if A[x][y]:
+            return [x, y]
+        else:
+            best_i = None
+            best_path = list(range(n))
+            paths = []
+            for i in range(n):
+                if A[x][i]:
+                    this_path = self.path_alg(self.remove(A,x, n), x, y, n)
+                    if len(this_path) < len(best_path):
+                        best_path = this_path
+                        best_i = i
+
+            return [x] + best_path
+
+    def next_move(self, mapy, best_unkown):
+        mapy2 = mapy.copy()
+        mapy2[best_unkown] = True
+        n = len(mapy2.keys())
+        A = [[True for _ in range(n)] for _ in range(n)]
+
+        listy = list(mapy2.keys())
+        for i in range(n):
+            for j in range(n):
+                if self.vector_len_2(listy[i] - listy[j]) == 1 and  mapy2[listy[i]] and mapy2[listy[j]]:
+                    A[i][j] = True
+                else:
+                    A[i][j] = False
+
+        x = listy.index(Position(0,0))
+        y = listy.index(best_unkown)
+
+        path = self.path_alg(A, x, y, n)
+
+        nexts = listy[path[1]]
+        return Position(nexts[0], nexts[1])
+
+    def BFS(self, s, target):
+        visited = set()
+
+        queue = []
+
+        queue.append((s, []))
+        visited.add(s)
+
+        while queue:
+            print(queue)
+            (s, path) = queue.pop(0)
+
+            for direction in [UP, DOWN, LEFT, RIGHT]:
+                i = self.me + STEP[direction]
+                if i not in self.knowledge or self.knowledge[i] == True:
+                    if i not in visited:
+                        queue.append((i, path + [direction]))
+                        visited.add(i)
+                        if i == target:
+                            return path[0]
+        return UP
+
     def take_turn(self, obstruction, ping_response):
         ''' Ignore any ping information, just choose a random direction to walk in, or ping '''
 
@@ -105,7 +201,7 @@ class MyGoody(Goody):
             self.last_ping_response = ping_response
             self.last_ping_time = 0
 
-        if self.last_ping_time is None or self.last_ping_time > 10:
+        if self.last_ping_time is None or self.last_ping_time > 30:
             # If we don't know where the other goody is, then send a ping so that we can find out.
             print("Pinging to find our friend and foe")
             return PING
@@ -125,5 +221,8 @@ class MyGoody(Goody):
         # print(self.last_ping_time)
 
         move = len_and_dirs[0][0]
-        self.me += STEP[move]
+        # move = self.BFS(self.me, self.find_best(target_location))
+        # move = self.next_move(self.knowledge, self.find_best(target_location))
+        # if not obstruction[move]:
+        #     self.me += STEP[move]
         return move
