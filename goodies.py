@@ -76,8 +76,24 @@ class MyGoody(Goody):
     def vector_len_2(self, vector):
         return (vector.x * vector.x) + (vector.y * vector.y)
 
+    def move_towards(self, obstruction, other):
+        len_and_dirs = []
+
+        for direction in [UP, DOWN, LEFT, RIGHT]: # STEP.keys()
+            # Choose the one that takes us closest to the our friend
+            if not obstruction[direction]:
+                # STEP[direction] turns the direction label into a vector (dx, dy) which we can add
+                # to a Position (another vector):
+                new_vector = other - STEP[direction]
+                entry = [direction, new_vector, self.vector_len_2(new_vector)]
+                len_and_dirs.append(entry)
+
+        len_and_dirs.sort(key=lambda len_and_dir: len_and_dir[2])
+        return len_and_dirs
+
     def take_turn(self, obstruction, ping_response):
         ''' Ignore any ping information, just choose a random direction to walk in, or ping '''
+        print(globals())
         if ping_response is not None:
             self.last_ping_response = ping_response
             self.last_ping_time = 0
@@ -95,19 +111,9 @@ class MyGoody(Goody):
         # For the four possible moves, find the resulting distance to our friend after each one:
         other = self.last_ping_response[friend]
         target_location = Position(other.x//2, other.y//2) #self.last_ping_response[friend]/2
-        len_and_dirs = []
 
-        for direction in [UP, DOWN, LEFT, RIGHT]: # STEP.keys()
-            # Choose the one that takes us closest to the our friend
-            if not obstruction[direction]:
-                # STEP[direction] turns the direction label into a vector (dx, dy) which we can add
-                # to a Position (another vector):
-                new_vector = target_location - STEP[direction]
-                entry = [direction, new_vector, self.vector_len_2(new_vector)]
-                len_and_dirs.append(entry)
+        len_and_dirs = self.move_towards(obstruction, other)
 
-        len_and_dirs.sort(key=lambda len_and_dir: len_and_dir[2])
-        print(len_and_dirs)
         self.last_ping_time += 1
         print(self.last_ping_time)
 
