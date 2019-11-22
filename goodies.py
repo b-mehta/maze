@@ -72,6 +72,8 @@ class MyGoody(Goody):
     def __init__(self):
         self.last_ping_response = None
         self.last_ping_time = None
+        self.me = Position(0,0)
+        self.knowledge = {self.me: True}
 
     def vector_len_2(self, vector):
         return (vector.x * vector.x) + (vector.y * vector.y)
@@ -93,7 +95,12 @@ class MyGoody(Goody):
 
     def take_turn(self, obstruction, ping_response):
         ''' Ignore any ping information, just choose a random direction to walk in, or ping '''
-        print(globals())
+
+        for direction in [UP, DOWN, LEFT, RIGHT]:
+            # print(direction, obstruction[direction])
+            self.knowledge[self.me + STEP[direction]] = obstruction[direction]
+        print(self.knowledge)
+
         if ping_response is not None:
             self.last_ping_response = ping_response
             self.last_ping_time = 0
@@ -103,7 +110,7 @@ class MyGoody(Goody):
             print("Pinging to find our friend and foe")
             return PING
 
-        print(self.last_ping_response)
+        # print(self.last_ping_response)
         friend, = [player for player in self.last_ping_response.keys()
                    if isinstance(player, Goody) and player is not self]
         foe, = [player for player in self.last_ping_response.keys() if isinstance(player, Baddy)]
@@ -115,6 +122,8 @@ class MyGoody(Goody):
         len_and_dirs = self.move_towards(obstruction, other)
 
         self.last_ping_time += 1
-        print(self.last_ping_time)
+        # print(self.last_ping_time)
 
-        return len_and_dirs[0][0]
+        move = len_and_dirs[0][0]
+        self.me += STEP[move]
+        return move
