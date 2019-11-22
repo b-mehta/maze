@@ -10,7 +10,7 @@ import time
 from collections import defaultdict
 
 from maze import Maze, Game, game_repeater
-from goodies import RandomGoody
+from goodies import *
 from baddies import RandomBaddy
 
 
@@ -28,8 +28,8 @@ EXAMPLE_MAZE = Maze(10, 10, "0001010000"
 def text_example():
     ''' Prints the state of the game to stdout after each round of turns '''
 
-    goody0 = RandomGoody()
-    goody1 = RandomGoody()
+    goody0 = LeftGoody()
+    goody1 = GreedyGoody()
     baddy = RandomBaddy()
 
     game = Game(EXAMPLE_MAZE * (2, 2), goody0, goody1, baddy)
